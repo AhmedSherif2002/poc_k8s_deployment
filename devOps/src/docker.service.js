@@ -4,7 +4,7 @@ import { deploy } from "./kubernetes.js";
 import { execSync, exec } from "child_process";
 import fs, { writeFileSync } from "fs"
 
-export const cloneAndCreateDockerImage = async (language, projectName, buildCommand, startCommand , repoUrl, port)=>{
+export const cloneAndCreateDockerImage = async (language, projectName, buildCommand, startCommand ,env_variables, repoUrl, port)=>{
     let docker_base_image;
     let dependencies_file;
     if(language === "node"){
@@ -16,16 +16,18 @@ export const cloneAndCreateDockerImage = async (language, projectName, buildComm
         dependencies_file="requirements.txt";
     }
     const startCommandArray = startCommand.split(" ").map(word => `"${word}"`).join(", ");
+    const env_variables_array = Object.keys(env_variables).map(env_variable => (`ENV ${env_variable}=${env_variables[env_variable]}\n`)).join('');
     const dockerfileContent =
-    `
-        FROM ${docker_base_image}
-        WORKDIR /app
-        COPY ${dependencies_file} ./ 
-        RUN ${buildCommand}
-        COPY . . 
-        EXPOSE ${port}
-        CMD [ ${startCommandArray} ]
-    `;
+`
+FROM ${docker_base_image}
+${env_variables_array}
+WORKDIR /app
+COPY ${dependencies_file} ./ 
+RUN ${buildCommand}
+COPY . . 
+EXPOSE ${port}
+CMD [ ${startCommandArray} ]
+`;
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const clonePath = path.join(__dirname, '../temp', projectName);

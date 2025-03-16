@@ -11,9 +11,9 @@ const PORT = 4000;
 app.use(bodyParser.json());
 
 app.post("/generate-dockerfile", (req, res) => {
-  const { projectName, language, buildCommand, startCommand , repoUrl, port} = req.body;
+  const { projectName, language, buildCommand, startCommand ,env_variables, repoUrl, port} = req.body;
 
-  if (!projectName || !language || !buildCommand || !startCommand || !repoUrl) {
+  if (!projectName || !language || !buildCommand || !startCommand || !repoUrl || !env_variables) {
     return res.status(400).send("Missing required parameters");
   }
   
@@ -21,7 +21,7 @@ app.post("/generate-dockerfile", (req, res) => {
     return res.status(400).send("Not supported language");
   }
   try{
-    cloneAndCreateDockerImage(language, projectName, buildCommand, startCommand , repoUrl, port);
+    cloneAndCreateDockerImage(language, projectName, buildCommand, startCommand ,env_variables, repoUrl, port);
     res.status(200);
   }catch(err){
     res.status(400);
